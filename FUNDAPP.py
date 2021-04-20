@@ -1,3 +1,5 @@
+#################### base ####################
+
 # Importing
 import pandas as pd
 from PIL import Image
@@ -73,24 +75,25 @@ cashFlowentry= ['depamor',
              ]
 shares = ['sharesBasic', 'shareswaDil', 'shareswa']
 
-# APP
+#################### interface ####################
 
 # Sidebar
 ticker = st.sidebar.selectbox('Компании из Промышленного индекса Доу Джонса:', dow30)
 response = requests.get(yf.Ticker(ticker).info['logo_url'])
 img = Image.open(BytesIO(response.content))
 st.sidebar.image(img)
-st.sidebar.title('О компании')
+st.sidebar.title('Abount')
 st.sidebar.write(yf.Ticker(ticker).info['longBusinessSummary'])
 
 # Main
 st.header(yf.Ticker(ticker).info['longName'])
-st.table(pd.DataFrame.from_dict({'Биржа':[yf.Ticker(ticker).info['exchange']],
-          'Индустрия':[yf.Ticker(ticker).info['industry']],
-          'Цена закрытия':[yf.Ticker(ticker).info['previousClose']]},
+st.table(pd.DataFrame.from_dict({'Exchange':[yf.Ticker(ticker).info['exchange']],
+          'Industry':[yf.Ticker(ticker).info['industry']],
+          'Last Close':[yf.Ticker(ticker).info['previousClose']]},
                                 orient='index', columns = ['']))
 
-# get data
+#################### get data ####################
+
 fs = pd.DataFrame(client.get_fundamentals_statements(ticker)).set_index('date').sort_index()
 fs_type = ['overview', 'incomeStatement', 'cashFlow', 'balanceSheet']
 fsA = fs[fs['quarter'] == 0]
@@ -99,31 +102,24 @@ fsQ_index = fsQ.index
 fsA_index = fsA.index
 
 # QUATERLY STATEMENTS
-# overview DataFrame
 l01 = []
 for i in fsQ.iloc[:, 0]:
         x = pd.DataFrame(i['overview']).set_index('dataCode')
         l01.append(x)
 overview = pd.concat(l01, axis = 1, ignore_index=False)
 overview.columns = fsQ_index
-
-# incomeStatement DataFrame
 l02 = []
 for i in fsQ.iloc[:, 0]:
         x = pd.DataFrame(i['incomeStatement']).set_index('dataCode')
         l02.append(x)
 incomeStatement = pd.concat(l02, axis = 1, ignore_index=False)
 incomeStatement.columns = fsQ_index
-
-# cashFlow DataFrame
 l03 = []
 for i in fsQ.iloc[:, 0]:
         x = pd.DataFrame(i['cashFlow']).set_index('dataCode')
         l03.append(x)
 cashFlow = pd.concat(l03, axis = 1, ignore_index=False)
 cashFlow.columns = fsQ_index
-
-# balanceSheet DataFrame
 l04 = []
 for i in fsQ.iloc[:, 0]:
         x = pd.DataFrame(i['balanceSheet']).set_index('dataCode')
@@ -136,38 +132,33 @@ fsQcons = pd.concat([overview, incomeStatement, cashFlow, balanceSheet], axis = 
 fsQcons.columns = pd.to_datetime(fsQcons.columns)
 
 # Suplimentary calc
-# маржа по чистой приыли
 netMargin = fsQcons.loc['netinc'] / fsQcons.loc['revenue']
-# 12M rolling
 ebitda = fsQcons.loc['ebitda']
 ebitda12m = ebitda.rolling(window = 4).sum()
 eps = fsQcons.loc['eps']
 eps12m = eps.rolling(window = 4).sum()
 div = fsQcons.loc['payDiv']
 div12m = div.rolling(window = 4).sum()
-# чистый долг
 if (yf.Ticker(ticker).info['sector'] == 'Financial Services'):
     net_debt = 0
 else:
     net_debt = fsQcons.loc['debtCurrent'] + fsQcons.loc['debtNonCurrent'] - fsQcons.loc['cashAndEq'] - fsQcons.loc['investmentsCurrent']
-# чистый долг / 12M rolling EBITDA
 net_debt_ebitda = net_debt / ebitda12m
-# дивиденды / прибыль
 payout = fsQcons.loc['payDiv'] / fsQcons.loc['netinc']
-# мультипликаторы и цена
 multiples = pd.DataFrame(client.get_fundamentals_daily(ticker)).set_index('date').dropna()
 multiples.index = pd.to_datetime(multiples.index, format = '%Y-%m-%d')
 
-# Style
+#################### plotting ####################
+
 plt.style.use("cyberpunk")
 fmt_quaterly = dts.MonthLocator(interval=3)
 
 # Market Cap
 fig, ax = plt.subplots()
 ax.plot(multiples['marketCap'] / 10**9,
-        color = 'yellow')
-ax.set_title('Рыночная капитализация',fontsize='x-large', fontweight='light')
-ax.set_ylabel('млрд долл',fontsize='large', fontweight='light')
+        color = 'blue')
+ax.set_title('Market Cap',fontsize='x-large', fontweight='light')
+ax.set_ylabel('bn USD',fontsize='large', fontweight='light')
 ax.xaxis.set_major_locator(fmt_quaterly)
 ax.annotate("{:.2f}млрд".format(multiples['marketCap'][-1] / 10**9),
             (fsQcons.columns[-1], multiples['marketCap'][-1] / 10**9),
