@@ -1,2 +1,4 @@
 tiingo
 yfinance
+matplotlib
+mplcyberpunk
