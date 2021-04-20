@@ -5,6 +5,7 @@ import requests
 from io import BytesIO
 
 # Parsing
+import tiingo as tiingo
 from tiingo import TiingoClient
 import yfinance as yf
 
