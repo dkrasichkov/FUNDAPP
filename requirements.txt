@@ -1,2 +1,2 @@
-pip install tiingo
-pip install yfinance
+tiingo
+yfinance
