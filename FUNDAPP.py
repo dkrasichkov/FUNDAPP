@@ -78,7 +78,7 @@ cashFlowentry= ['depamor',
 cf = ['ncfo', 'ncfi', 'ncff', 'ncf']
 growth = ['revenueQoQ', 'epsQoQ']
 shares = ['sharesBasic', 'shareswaDil', 'shareswa']
-ticker = st.sidebar.selectbox(st.heder('DOW30'), dow30)
+ticker = st.sidebar.selectbox(st.header('DOW30'), dow30)
 
 # Analyst Data
 analysts_data = yf.Ticker(ticker).recommendations.drop_duplicates(subset = 'Firm', keep = 'last').sort_index()[['Firm', 'To Grade']]
