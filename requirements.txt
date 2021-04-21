@@ -1,4 +1,3 @@
 tiingo
 yfinance
-matplotlib
-mplcyberpunk
+plotly
