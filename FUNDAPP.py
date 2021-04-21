@@ -78,7 +78,7 @@ cashFlowentry= ['depamor',
 cf = ['ncfo', 'ncfi', 'ncff', 'ncf']
 growth = ['revenueQoQ', 'epsQoQ']
 shares = ['sharesBasic', 'shareswaDil', 'shareswa']
-ticker = st.sidebar.selectbox('DOW30 Company', dow30)
+ticker = st.sidebar.selectbox(st.heder('DOW30'), dow30)
 
 # Analyst Data
 analysts_data = yf.Ticker(ticker).recommendations.drop_duplicates(subset = 'Firm', keep = 'last').sort_index()[['Firm', 'To Grade']]
@@ -87,7 +87,7 @@ analysts_data.index = analysts_data.index.strftime(date_format = '%d/%m/%Y')
 analysts_data = analysts_data.rename(columns = {'Firm':'Инвестиционная компания','To Grade':'Оценка'})
 analysts_data.index = analysts_data.index.rename('Дата')
 anr = analysts_data.pivot_table(index = 'Оценка', aggfunc = 'size')
-anr = pd.DataFrame(anr.rename(''))
+anr = pd.DataFrame(anr.rename('')).sort_values('', ascending=False)
 inst = yf.Ticker(ticker).institutional_holders.dropna().set_index('Holder').sort_values(['% Out'], ascending = False)['% Out']
 # Get Financials
 fs = pd.DataFrame(client.get_fundamentals_statements(ticker)).set_index('date').sort_index()
